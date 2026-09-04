@@ -1,0 +1,67 @@
+---
+title: "ARA 669 - Assignment 1"
+author: "Your name here"
+date: "today's date here"
+output: html_document
+---
+
+## Assignment
+
+This first assignment is designed to ease you into the course, and to introduce GitHub and Quarto to those of you not familiar with the programs. It's also an opportunity for me to gauge a little more formally where everyone is in terms of coding styles and experiences. 
+
+Please submit this assignment via GitHub by Sept. 3 at 5 pm.
+
+## Getting started
+
+Use the code chunk below to load the tidyverse package \[0.5 pt\].
+
+```{r setup}
+#| message: false
+#| error: false
+
+# Paste your code in here!
+
+```
+
+## Data exploration
+
+Several well-behaved datasets are preloaded into R and are frequently used to demonstrate statistical concepts. Use the function data() to retrieve a list available datasets and pick one to explore for this assignment.
+
+```{r explore}
+#| message: false
+#| error: false
+
+# Paste your code in here!
+
+```
+
+Describe the context of the dataset and the structure of the data themselves \[1 pt\].
+
+## Plotting
+
+Explore the data visually using ggplot2 \[1 pt\].
+
+```{r plotting}
+#| message: false
+#| error: false
+
+# Paste your code in here!
+
+```
+
+Describe your approach. What choices did you make in deciding which variables to use, plot types, etc., and why? [1 pt].
+
+## Read & reflect
+
+Read the perspectives article “Should we still teach or learn coding? A postgraduate student perspective on the use of large language models for coding in ecology & evolution” (Campbell et al. 2024). What part(s) of this article resonated with you, and why [1.5 pts]? 
+
+## AI statement
+
+Describe your use of AI in this assignment, including:
+
+1.  What tool or service did you use?
+
+2.  What was the specific purpose or use?
+
+3.  How did this use enhance your understanding of the topic/code?
+
