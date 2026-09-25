@@ -10,6 +10,7 @@ output: html_document
 This first assignment is designed to ease you into the course, and to introduce GitHub and Quarto to those of you not familiar with the programs. It's also an opportunity for me to gauge a little more formally where everyone is in terms of coding styles and experiences. 
 
 Please submit this assignment via GitHub by Sept. 3 at 5 pm.
+4.25/5. I've added a few comments throughout, please let me know if you have any questions
 
 ## Getting started
 
@@ -18,6 +19,7 @@ Use the code chunk below to load the tidyverse package \[0.5 pt\].
 ```{r setup}
 #| message: false
 #| error: false
+# I think you mean install.packages below. However, I recommend commenting out any install.packages as you should only need to do that once per machine (plus updates) and it can result in some weird errors. Also you forgot the closing quotation marks, which means the rest of the code chunk doesn't run.
 installed.packages("tidyverse)
 library(tidyverse)
 ```
@@ -37,7 +39,7 @@ Explore the data visually using ggplot2 \[1 pt\].
 ```{r plotting}
 #| message: false
 #| error: false
-
+# Again, installs.packages isn't the correct function, but you wouldn't want to try to install packages again each time you run the code. Technically, dplyr is in the tidyverse, so if the code above worked (it doesn't, because of the missing closing quotation), you shouldn't need these next two lines.
 installs.packages(dplyr)
 library(dplyr)
 
