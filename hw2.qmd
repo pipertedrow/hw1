@@ -1,0 +1,199 @@
+---
+title: "ARA 669 - Assignment 2"
+author: "Your name here"
+date: "today's date here"
+output: html_document
+---
+
+## Overview
+
+The goal of this assignment is to apply the tools and approaches we've learned during lab to explore data from a study of periwinkle snail (*Littoraria irrorata*) association with big cordgrass (*Spartina cynosuroides*) and smooth cordgrass (*Spartina alterniflora*) in a salt marsh in Taskinas Creek, a tributary of the York River. The dataset includes the following variables:
+
+obs: Observation number
+quad: Quadrat number
+plantType: SPAL = *Spartina alterniflora*; SPCY = *Spartina cynosuroides*
+liveStems: Number of live stems
+deadStems: Number of dead stems
+burrows: Fiddler crab burrows greater than one centimeter
+mussels: Ribbed mussels (*Guekensia demissa*)
+snails: Periwinkle snails (*Littoraria irrorata*)
+snailDensity: Snail Density
+notes: any notes about the observation
+
+Please submit this assignment via GitHub by 24 September.  
+
+## Getting started
+
+**Use the code chunk below to load packages and the data. \[0.5 pt\]**
+
+```{r setup}
+#| message: false
+#| error: false
+library(car)
+library(tidyverse)
+library(dplyr)
+# Paste your code in here!
+
+```
+
+## Data exploration
+
+**Explore the data visually using ggplot2. \[0.5 pt\]**
+
+```{r plotting}
+#| message: false
+#| error: false
+
+ggplot(data = data, mapping = aes(deadStems, snailDensity ))+geom_point()
+ggplot(data = data, mapping = aes(liveStems, snailDensity))+geom_point()
+ggplot(data = data, mapping = aes(plantType, snailDensity))+geom_point()
+ggplot(data = data, mapping = aes(plantType, snails))+geom_point()
+ggplot(data = data, mapping = aes(snailDensity, mussels))+geom_point()
+# Paste your code in here!
+
+```
+
+**Describe your approach. What choices did you make in deciding which variables to use, plot types, etc., and why? \[1 pt\]** I plotted plantype ~ snail density to see if there were trends between the two plant types and preference by snail. I also plotted livestems and deadstems ~ snails to see if snails are inhabiting dead or live stems. 
+
+## Research question
+
+**Based on the data description above and your visualizations, formulate research questions and testable hypotheses that could be answered by applying linear models to the data provided. \[1 pt\]**
+
+1) Do snails select for smooth cordgrass or big cordgrass? 
+2) does snail Density change with presence of mussels or blue crabs (burrows)?
+3) does snail Density change with live vs dead stems? 
+
+## Analysis
+
+**Develop a set of models (3+) that reflect the hypotheses described above. \[1 pt\]**
+
+```{r models}
+#| message: false
+#| error: false
+
+m0 <-
+  lm(snailDensity ~ 1, data = data)
+
+m1 <-
+  lm(snailDensity ~ plantType, data = data)
+
+m2 <-
+  lm(snailDensity ~ mussels*burrows, data = data)
+
+m3 <-
+  lm(snailDensity ~ liveStems*deadStems, data = data)
+
+m4 <-lm(snailDensity ~ burrows, data = data)
+
+```
+
+**Evaluate your models using an approach covered as part of this class. \[1 pt\]**
+
+```{r modelselection}
+#| message: false
+#| error: false
+
+vif(m2)
+vif(m3)
+
+aic <-AIC(m0, m1,m2,m3, m4) %>% 
+  arrange(AIC)
+  
+BIC(m0, m1, m2, m3, m4) %>% 
+  arrange(BIC)
+
+print(aic)
+### m2 
+
+```
+
+**Check your model diagnostics (i.e., are the model assumptions met) using an approach covered as part of this class. \[1 pt\]**
+
+```{r diagnostics}
+#| message: false
+#| error: false
+
+plot(m4) #plot each model to check assumptions 
+
+dat <-
+  data%>%
+  na.omit()
+
+sn_mean<-
+  rep(NA,100)
+
+#sampling distribution is the distribution of the mean 
+# make a for-loop to resample the penguin dataset and calculate the means
+# this loop fills the empty fl_mean data set. It randomly pulls 333 mean flipper lengths from the data set and repeats this 100 times. 333 = dat size 
+for(i in 1:length(sn_mean)){
+  sn_mean[i]=
+    dat %>%
+    slice_sample(
+      n = nrow(dat),
+      replace = TRUE)%>%
+    summarise(
+      mean = mean(snailDensity))%>%
+    pull(mean)
+    
+}
+
+# plot of raw data
+
+par(mfrow = c(2, 1))
+
+raw <-hist(
+  dat$snailDensity, 
+  main = "Raw data",
+  xlab = "Snail Density")
+
+hist(
+  sn_mean, 
+  main = "Distribution of means",
+  xlab = "Mean of Snail Density",
+  col = "lavender",
+  xlim = c(100, 200))
+abline(
+  v = mean(dat$snailDensity), 
+  lwd = 2)
+```
+
+**Provide parameter estimates and SEs for the most supported model and plot the fitted model over observed data. \[2 pts\]**
+
+Call:
+lm(formula = snailDensity ~ burrows, data = data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-130.79  -56.53  -11.39   55.95  203.30 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  194.792     15.011  12.977  < 2e-16 ***
+burrows      -14.089      5.051  -2.789  0.00713 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 79.59 on 58 degrees of freedom
+Multiple R-squared:  0.1183,	Adjusted R-squared:  0.1031 
+F-statistic: 7.781 on 1 and 58 DF,  p-value: 0.007131
+
+
+## Conclusions
+
+**Provide summary statements about the quality of your analysis, including any potential limitations or caveats. \[1 pt\]**
+
+Snail density was best explained by the presence of blue crab burrows. However, the R^2 for the model is only 0.1031 so this model does not account for most of the overall variation. Additionally, an SE of 5.051 meaning the estimate is less precise. It is likely there are more vairables that would better explain snail density that may not have been accounted for in this data set 
+
+
+
+## AI statement
+
+*If you used AI for this assignment, please describe your use, including:*
+
+*1.  What tool or service did you use?* copilot (i googled some things and it provides AI summaries)
+
+*2.  What was the specific purpose or use?* I was confirming the parameter esitimates for a linear model
+
+*3.  How did this use enhance your understanding of the topic/code?* It checked my knowledge on what I thought I knew! 
+
+
