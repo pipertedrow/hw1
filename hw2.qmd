@@ -21,6 +21,8 @@ snailDensity: Snail Density
 notes: any notes about the observation
 
 Please submit this assignment via GitHub by 24 September.  
+7.25/9. As mentioned previously, for future assignments, please: 1) change the name of the file to include your name, 2) update the yaml header to include your name and the date, 3) import the data using an R command (i.e., read_csv), and 4) render the final document to html. Please let me know if you have any questions.
+
 
 ## Getting started
 
@@ -31,7 +33,7 @@ Please submit this assignment via GitHub by 24 September.
 #| error: false
 library(car)
 library(tidyverse)
-library(dplyr)
+library(dplyr) # technically dplyr is in the tidyverse, so you don't need to library() it separately
 # Paste your code in here!
 
 ```
@@ -52,6 +54,7 @@ ggplot(data = data, mapping = aes(snailDensity, mussels))+geom_point()
 # Paste your code in here!
 
 ```
+I probably wouldn't recommend geom_point for the graphs using plantType on the x axis, but if you prefer them, consider using semitransparency to help visualize overlapping data points.
 
 **Describe your approach. What choices did you make in deciding which variables to use, plot types, etc., and why? \[1 pt\]** I plotted plantype ~ snail density to see if there were trends between the two plant types and preference by snail. I also plotted livestems and deadstems ~ snails to see if snails are inhabiting dead or live stems. 
 
@@ -60,7 +63,7 @@ ggplot(data = data, mapping = aes(snailDensity, mussels))+geom_point()
 **Based on the data description above and your visualizations, formulate research questions and testable hypotheses that could be answered by applying linear models to the data provided. \[1 pt\]**
 
 1) Do snails select for smooth cordgrass or big cordgrass? 
-2) does snail Density change with presence of mussels or blue crabs (burrows)?
+2) does snail Density change with presence of mussels or blue crabs (burrows)? (note these are not blue crabs, they are fiddler crabs, which have a very different diet.)
 3) does snail Density change with live vs dead stems? 
 
 ## Analysis
@@ -156,6 +159,7 @@ abline(
   v = mean(dat$snailDensity), 
   lwd = 2)
 ```
+What was your goal in plotting these two distributions? 
 
 **Provide parameter estimates and SEs for the most supported model and plot the fitted model over observed data. \[2 pts\]**
 
@@ -177,6 +181,7 @@ Residual standard error: 79.59 on 58 degrees of freedom
 Multiple R-squared:  0.1183,	Adjusted R-squared:  0.1031 
 F-statistic: 7.781 on 1 and 58 DF,  p-value: 0.007131
 
+I don't see a plot of the fitted model over observed data? 
 
 ## Conclusions
 
