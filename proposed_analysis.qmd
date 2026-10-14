@@ -1,0 +1,317 @@
+---
+title: "ARA 669 - Exploratory data analysis and proposed analytical approach"
+author: Piper Tedrow
+date: Ocotober 13th 2026
+output: html_document
+---
+
+## Final Project
+
+Each student will complete an independent project using a dataset from their own research whenever possible. Students who do not have an appropriate dataset will be provided with one.
+
+The project is intended to mirror the statistical component of a scientific research study and will require students to integrate concepts learned throughout the course. Project components include: 
+
+- formulation of a research question, objective, and/or testable hypotheses;
+- description of the study design and data with justification of design adequacy;
+- exploratory data analysis;
+- selection and justification of an appropriate modeling approach;
+- model fitting, comparison, selection, and validation;
+- interpretation of results in the context of the research question;
+- preparation of publication-quality figures and tables;
+- a written report in the style of a short scientific paper (approximately 4-6 pages); and
+- a 3-minute lightening talk summarizing the study, analytical approach, results, and conclusions.
+
+Projects will be evaluated on the quality of the scientific question, appropriateness of the statistical methodology, rigor of the analysis, interpretation of results, clarity of written and oral communication, and reproducibility of the analytical workflow.
+
+To support you on this analytical journey, this project has been divided into four steps, which will all contribute to your final project grade (worth 50% of your total grade). 
+
+1. Project proposal, including research question and description of dataset
+2. Exploratory data analysis and proposed analytical approach
+3. Preliminary model fits and diagnostics
+4. Final paper and presentation
+
+## Exploratory data analysis and proposed analytical approach
+
+The goal of this component of the project is begin exploring your dataset and developing a plan for the analysis. 
+
+Please submit this assignment via GitHub by **12 October at 11:59pm**, including the raw data, .qmd, and .html files. Be sure that the entire file runs without errors before submitting. You can create a new folder in your homework repository or create a new repository specific to the final project, whichever you prefer. This exploratory analysis, preliminary model fits (part 3), and code used for the final paper and presentation will all be submitted via GitHub. 
+
+## Data exploration
+
+**Use the code chunk below to load packages and the data.**
+
+```{r setup}
+#| message: false
+#| error: false
+
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(readr)
+library(tidyr)
+library(tibble)
+library(tidyverse)
+
+nest_prop <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pilot_study/nest_prop.csv",
+                        check.names = FALSE)
+anthrop_prop <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pilot_study/anthrop_prop.csv",
+                      check.names = FALSE)
+lining_prop <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pilot_study/lining_prop.csv",
+                      check.names = FALSE)
+spatial_data <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pilot_study/spatial_metrics_nomo_noca.csv",
+                      check.names = FALSE)
+microbiome_data <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pilot_study/microbiome_metadata.csv",
+                      check.names = FALSE)
+
+nest_morph_data <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pilot_study/nest_morph_metadata.csv",
+                      check.names = FALSE)
+
+```
+
+**Based on your research questions, objectives, and/or testable hypotheses, develop data visualizations using ggplot2. Consider visualizations that show relationships, the distribution of the underlying data, etc. If you need inspiration, check out the [R Graph Gallery](https://r-graph-gallery.com/). For each visualization, describe your approach: what choices did you make in deciding which variables to use, plot types, etc., and why? \[2.5 pts\]**
+
+
+```{r fig1}
+#| message: false
+#| error: false
+
+# Plot of microbial shannons index by species 
+microbiome_data %>%
+  ggplot( aes(x=species, y=Shannon, fill=species)) +
+    geom_boxplot() +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("Shannon's index by Species") +
+    xlab("")
+
+```
+
+
+```{r fig2}
+#| message: false
+#| error: false
+
+# Plot of microbial shannons index by sample type 
+microbiome_data %>%
+  ggplot( aes(x=`sample type`, y=Shannon, fill=`sample type`)) +
+    geom_boxplot() +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("Shannon's index by Sample Type") +
+    xlab("Sample Type")
+
+
+```
+
+```{r fig2}
+#| message: false
+#| error: false
+
+# Plot of nest material shannons index by species 
+nest_morph_data %>%
+  ggplot( aes(x=species, y=shannon, fill=species)) +
+    geom_boxplot() +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("Material Shannon's Index by Species") +
+    xlab("noca = northern cardinal, nomo = northern mockingbird")
+
+
+```
+
+```{r fig2}
+#| message: false
+#| error: false
+
+# Plot of nest material richness by species 
+nest_morph_data %>%
+  ggplot( aes(x=species, y=richness, fill=species)) +
+    geom_boxplot() +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("Material Richness by Species") +
+    xlab("noca = northern cardinal, nomo = northern mockingbird")
+
+```
+
+```{r fig2}
+#| message: false
+#| error: false
+library(dplyr)
+
+nest_morph_data <- nest_morph_data[, -1]
+
+main <- c("anthropogenic", "bark", "coarse stems", "fine stems")
+
+nest_long <- nest_morph_data %>%
+  tidyr::pivot_longer(
+    cols = 8:24,
+    names_to = "category",
+    values_to = "value"
+  ) %>%
+  filter(category %in% main)
+
+ggplot(nest_long, aes(x = perc_impervious, y = value,
+                             shape = category, alpha = category,
+                             size = category, color = category)) +
+  geom_point()
+
+
+
+
+```
+
+
+```{r fig2}
+#| message: false
+#| error: false
+
+# Calculate mean of each category column in nest_morph_data
+#8 through 24 
+mean_overall <- nest_morph_data %>%
+  group_by(species)%>%
+  summarise(
+    across(7:23, ~ if (is.numeric(.x)) mean(.x, na.rm = TRUE) else NA_real_)
+  )
+
+mean_long <- mean_overall %>%
+  pivot_longer(
+    cols = -species,     
+    names_to = "category",
+    values_to = "mean_value"
+  )
+mean_long <- mean_long %>%
+  mutate(mean_value = as.numeric(mean_value))
+
+mean_long <- mean_long %>%
+  filter(mean_value >= 0.02) ### so its min 2% of a nest 
+
+#stacked bar chrt 
+ggplot(mean_long, aes(fill=category, y=mean_value, x=species)) + 
+    geom_bar(position="fill", stat="identity")
+
+```
+
+
+```{r fig2}
+#| message: false
+#| error: false
+
+mean_long <- mean_long %>%
+  group_by(category) %>%
+  mutate(cat_max = max(mean_value, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(category = fct_reorder(category, cat_max, .desc = TRUE))
+
+#bar chart
+ggplot(mean_long, aes(fill=species, y=mean_value, x=category)) + 
+    geom_bar(position="dodge", stat="identity")+
+    geom_col(width = 0.6)
+
+## this is not clean at all! I want to show categories with minimum 2%, grouped by species
+## I want the bars to be uniform and not overlap so strnagley 
+
+## exta code for me 
+nest_long <- nest_morph_data %>%
+  pivot_longer(
+    cols = 9:24,
+    names_to = "category",
+    values_to = "value"
+  )
+##ignore 
+
+```
+
+```{r fig2}
+#| message: false
+#| error: false
+
+#scatter plots anthropogenic as a function of percent impervious surfaces 
+ggplot(nest_morph_data, aes(x=perc_impervious, y=anthropogenic, alpha=species)) + 
+    geom_point(size=6, color="red") +
+    ggtitle("Transparency")
+
+# Shape
+ggplot(nest_morph_data, aes(x=perc_impervious, y=anthropogenic, shape=species)) + 
+    geom_point(size=6, color="lightblue") +
+    ggtitle("Shape")
+
+```
+
+```{r fig2}
+#| message: false
+#| error: false
+
+library(dplyr)
+#clean up anthrop and create plastic as a proportion of whole 
+anthrop_prop <- anthrop_prop[, !(is.na(names(anthrop_prop)) | names(anthrop_prop) == "")]
+
+#add proportion columns
+anthrop_prop <- anthrop_prop %>%
+  mutate(
+    prop_plastic = `mass plastic`/`total anthro mass`,
+    prop_string = `mass string`/`total anthro mass`,
+    prop_other = `mass other`/`total anthro mass`
+  )
+
+
+# Plot of nest material richness by species 
+anthrop_prop %>%
+  ggplot( aes(x=species, y=prop_plastic, fill=species)) +
+    geom_boxplot() +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("Plastic Use by Species") +
+    xlab("noca = northern cardinal, nomo = northern mockingbird")
+
+```
+## Proposed analytical approach
+
+**Considering the study design and data, and your research questions, objectives, and/or testable hypotheses, describe your proposed analytical approach. Include your response and predictor variables, type of analysis (linear regression, generalized linear regression, gam, etc.), model selection criteria, etc. Provide sufficient detail to evaluate your proposed approach in the context of your data and questions of interest. If you have questions or uncertain about anything, highlight that here as well. \[2.5 pts\]**
+
+
+1) Local degree of urbanization and nest composition 
+predictor variables: perc canopy cover, perc impervious surfaces, plastic in plots, distance to road, species 
+response variables: proportion of anthropogenic materials, overall nest composition 
+
+For proportion of anthropogenic materials, I will use GLMs with AIC selection criteria 
+For overall nest composition I will be running betadisper and permanovas on bray curtis distances. I would like help making a linear model or GLN with overall nest composition as the repsonse (idk if that is possible).  
+
+2)nest composition and microbial communitiees 
+predictor variables: lining material richness, lining composition binned. For example, I want to bin nests by high prop of fine stems and low prop fine stems for cardinal, and high prop moss and low prop moss for mockingbirds. 
+
+response variables: bacterial richness, shannon's index, differential abundance...I want to know what taxa are enriched in high prop moss nests versus low prop moss nests. For microbial composition I will be running betadisper and permanovas on bray curtis distances and jaccards. Again, I would like to know if i can run LMs or GLMs with the beta diversity metrics. 
+
+**I need help knowing how to analyze some trends I am seeing. For example, Cardinals use thin white/clear plastics in the middle cup where they usually use dried leaves. Mockingbrids use synthetic cotton in the middle cup where they usually use moss. I am not sure how to visualize these trends statistically. Maybe predictor variables: prop leaves, prop plastic, prop string, prop moss of middle cups, species. Response: overall middle cup compositon. 
+
+3)sample type analysis 
+So first, I will be comparing bacterial community composition between nest material, nest swabs, and eggshell communities.I want to know (for just the nests not eggshells) if sampling method influences beta or alpha diversity. 
+
+predictor variables: sampling method, species 
+response variables: bacterial community composition, shannon's index, richness, differentially abundant taxa.  
+
+## AI statement
+
+**If you used AI for this assignment, please describe your use, including:**
+
+**1.  What tool or service did you use?**
+claude code 
+**2.  What was the specific purpose or use?**
+I had to change the data frame sometime for visuals. For exmaple to make nest_long I needed help to get the variables in a correct ordination for plotting
+**3.  How did this use enhance your understanding of the topic/code?**
+claude code help me answer more in depth questions about my data by helping manipulate the data frame in a way I could plot new trends. 
