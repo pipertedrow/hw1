@@ -1,0 +1,207 @@
+---
+title: "ARA 669 - Assignment 3"
+author: "Your name here"
+date: "today's date here"
+output: html_document
+---
+
+## Overview
+
+The goal of this assignment is to apply the tools and approaches we've learned during this course to critique, and then expand on, a statistical analysis. 
+
+Please submit this assignment via GitHub by 2 November.   
+
+## Read & reflect
+
+**Read the article "Do native land crabs hinder forest regeneration on Socorro Island?" (Luna-Zuniga et al. 2025). Describe: \[2 pt\]**
+
+1. The primary question(s) the authors are trying to answer.
+  Is there a lack of tree recruitment on the island? 
+  Does tree recruitment very by forest type? 
+  Is J. oceanica the main recruitment barrier of common tree types? 
+2. The experimental and sampling design. 
+  Densitiy 
+Sampling occured within three forest types on the Island; TEF, TDF, and MCF. 50x10m vegetation plots were sampled for 5 tree species. 18 plots in year 1, 16 plots in year 2, and 2 plots in year 3. The five tree species in each vegetation plot were identified as seddlings, sapplings, or adults. 
+  Seed Predation
+Then 17 plots across TEF and MCF were made to contain seeds. Half the plots were control and while the other had crabs. The number of plots per species of tree were uneven. 
+3. The statistical approach used. 
+  THey used negative binomial GLMMs with number of individuals as the response. The predictors were life stage (seedling, sapling or adult), species (Psidium, Guettarda, Ilex, Sideroxylon and Ficus), forest type (MCF, TEPand TDF) and the interactions.They also made probabilty of density historgrams for the different tree species. To analyze seed predation they ran binomial GLMMs. The response variable was the proportion of remaining seeds after ten days, divided by 10 (the initial
+number of seeds placed in each treatment). As predictive variables, an interaction between treatment (control or exclusion) and species (Psidium, Guettarda, Sideroxylon, and Ilex) was included. 
+
+**Imagine you are reviewing this manuscript prior to its publication. Provide a constructive critique of the statistical analyses as they relate to the experimental and sampling design. What did they do well? What would be improved? \[3 pt\]**
+
+The researchers ran the correct GLMMs for their data types. A negative binomial is appropriate for positive counts, and a binomial GLM is appropriate for proportional data. However, the models do not account for some important factors. In the first model on vegetation density, they do not account for time! They had plots over three years, and a different number of plots each year. In the second model on seed predation, they do not account for the uneven sampling by tree species. One species had only 4 plots while others had more. 
+
+If I were to rerun these models, I would fix the first model by including time (smapling year) as a random factor. And maybe including year/number of plots as a fix factor since year 1 had 18 plots and year 3 had only 3 plots.For the secondary model, I would account for the uneven plot distribution across the different seed species. You could account for this by randomly selecting down to the miniumum number of plots assigned by species (analyzing on 4 plots per species) 
+
+## Re-analysis
+
+The data associated with this paper are available here: https://figshare.com/articles/dataset/Luna-Zuniga_etal_Regeneration_Socorro-Island_xlsx/29144249/1?file=54804050. Note that the file has several header lines; remove these in Excel prior to importing the data into R or use [readxl](https://readxl.tidyverse.org/articles/multiple-header-rows.html).
+
+Based on your critique of the statistical approach taken by Luna-Zuniga et al. (2025), re-analyze the data to evaluate the effect of *Johngarthia oceanica* on the structure and composition of these island forests, specifically focusing on the seed predation experiment.
+
+**Use the code chunk below to load packages and the data. \[0.5 pt\]**
+
+```{r setup}
+#| message: false
+#| error: false
+
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+library(glmmTMB)
+library(car)
+
+```
+
+## Data exploration
+
+**Explore the data visually using ggplot2. \[0.5 pt\]**
+
+```{r plotting}
+#| message: false
+
+luna2 %>%
+  ggplot( aes(x=Treatment, y=Remaining, fill=Treatment)) +
+    geom_boxplot() +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+    theme_classic()+
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("A boxplot with jitter") +
+    xlab("")
+```
+
+## Model development
+
+**Based on the experimental and sampling design, which variables should be considered as fixed effects? Which could be considered as random effects? What distributions should be considered? \[1 pt\]**
+
+my response variable is cbind(remaining, removed)
+my predictor variables are species and treatment 
+random effects are site and ID_treatment 
+my fixed effect is species 
+
+## Analysis
+
+**Develop a set of generalized linear mixed-effects models that reflect the structures described above. Include a model that includes the same response variables as Luna-Zuniga et al. (2025). \[1 pt\]**
+
+```{r models}
+#| message: false
+#| error: false
+
+m1 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Species * Treatment + (1|Site),
+  data = luna2,
+  family = binomial(link = "logit")
+)
+
+m2 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Species + Treatment + (1|Site),
+  data = luna2,
+  family = binomial(link = "logit")
+)
+
+m3 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Species * Treatment,
+  data = luna2,
+  family = binomial(link = "logit")
+)
+
+m4 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Species + (1|Site),
+  data = luna2,
+  family = binomial(link = "logit")
+)
+
+m5 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Treatment + (1|Site),
+  data = luna2,
+  family = binomial(link = "logit")
+)
+
+m6 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Species * Treatment + (1|Site) + (1|ID_treatment),
+  data = luna2,
+  family = binomial(link = "logit")
+)
+
+m7 <- glmmTMB(
+  cbind(Removed, Remaining) ~ Species * Treatment + (1|ID_treatment),
+  data = luna2,
+  family = binomial(link = "logit")
+)
+```
+
+**Evaluate the models using an approach covered as part of this class. \[0.5 pt\]**
+
+```{r modelselection}
+#| message: false
+#| error: false
+
+aic_table <- AIC(m1, m2, m3, m4, m5,m6,m7)
+
+aic_table$model <- rownames(aic_table)
+rownames(aic_table) <- NULL
+
+aic_table$rank <- rank(aic_table$AIC, ties.method = "min")
+
+aic_table <- aic_table[
+  order(aic_table$rank),
+  c("model", "df", "AIC", "rank")
+]
+
+print(aic_table)
+```
+
+**Check your model diagnostics (i.e., are the model assumptions met) using an approach covered as part of this class. \[1 pt\]**
+
+```{r diagnostics}
+#| message: false
+#| error: false
+
+library(DHARMa)
+
+res7 <- simulateResiduals(m7, n = 1000, seed = 123)
+plot(res7)
+
+```
+
+**Which model would you choose as your final model? Why is that model preferred over the others? \[1 pt\]**
+
+I chose model 7 as the final model. From evaluating the models, m7 ranked the lowest in AIC value and met model assumptions. 
+
+**Generate model predictions (using the ggeffects package) and plot the predictions over observed data. Describe your results. \[1.5 pt\]**
+
+```{r predictions}
+#| message: false
+#| error: false
+
+pred_m7 <- ggeffects::ggpredict(
+  m7,
+  terms = c("Species", "Treatment [Control,Exclusion]"),
+  type = "fixed"
+)
+
+pred_m7
+plot(pred_m7)
+
+```
+
+
+## Conclusions
+
+**How do your results compare to those presented by Luna-Zuniga et al. (2025)? \[1 pt\]**
+My results were quite similar. Psidium and Sideroxylon experienced greater predation rates than Ilex and Guettarda. Ilex and Guettarda had lower success in Control plots. My model used seeds remaining and seeds removed as the response while the paper used a proportion. 
+**Provide summary statements about the quality of your analysis, including any potential limitations or caveats. \[1 pt\]**
+
+## AI statement
+
+*If you used AI for this assignment, please describe your use, including:*
+
+*1.  What tool or service did you use?* Perplexity AI
+
+*2.  What was the specific purpose or use?* I needed help fixing my ggeffects, I had the right code it helped me adjust "Treatment" with Control and Exclusion included. I also used it to help me run assumptions on model 7. 
+
+*3.  How did this use enhance your understanding of the topic/code?* This platform explained the layout of ggeffects to enhance my understanding of the code format. 
