@@ -68,8 +68,9 @@ nest_morph_data <- read.csv("C:/Users/chris/Downloads/PIlot_Study/W&M Biology/Pi
 
 ```
 
-**Based on your research questions, objectives, and/or testable hypotheses, develop data visualizations using ggplot2. Consider visualizations that show relationships, the distribution of the underlying data, etc. If you need inspiration, check out the [R Graph Gallery](https://r-graph-gallery.com/). For each visualization, describe your approach: what choices did you make in deciding which variables to use, plot types, etc., and why? \[2.5 pts\]**
+[Note, a perk of qmd files is the use of relative path names. The code above does not work on my computer because that path does not exist.]{style="color: aquamarine;"}
 
+**Based on your research questions, objectives, and/or testable hypotheses, develop data visualizations using ggplot2. Consider visualizations that show relationships, the distribution of the underlying data, etc. If you need inspiration, check out the [R Graph Gallery](https://r-graph-gallery.com/). For each visualization, describe your approach: what choices did you make in deciding which variables to use, plot types, etc., and why? \[2.5 pts\]**
 
 ```{r fig1}
 #| message: false
@@ -108,6 +109,8 @@ microbiome_data %>%
 
 
 ```
+
+[It would be helpful if you could provide a little description of what you are plotting. For example, what are your sample types "e", "nm", "ns"? Is the Shannon diversity an index of the microbial community? What do your values of the various nest materials represent? ]{style="color: aquamarine;"}
 
 ```{r fig2}
 #| message: false
@@ -173,6 +176,9 @@ ggplot(nest_long, aes(x = perc_impervious, y = value,
 
 ```
 
+[Just a reminder that you already called dplyr above. You don't need to load it again.
+
+Also, note the warnings that occur when you generate this plot - size and alpha don't really make sense when given categorical/discrete variables. Why did you include those in the mapping? Consider moving those statements outside the mapping statement and given them constant values.]{style="color: aquamarine;"}
 
 ```{r fig2}
 #| message: false
@@ -204,6 +210,7 @@ ggplot(mean_long, aes(fill=category, y=mean_value, x=species)) +
 
 ```
 
+[I'm really not a fan of stacked bar charts because it's not usually very easy to compare beyond the first category, especially when there are so many colors. Consider a dumbbell plot (x = value, y = category, color = species) or slope plot (x = species, y = value, color = category) (both use geom_point and geom_line but would require you adding the categories that are 0) instead to better visualize the differences across categories.]{style="color: aquamarine;"}
 
 ```{r fig2}
 #| message: false
@@ -233,6 +240,13 @@ nest_long <- nest_morph_data %>%
 ##ignore 
 
 ```
+
+[A couple things are going on here. 
+
+1. geom_bar and geom_col are generating two sets of bars for the same data. geom_bar(position = "dodge") is generated graphs where the bars are next to each other, whereas geom_col(width = 0.6) is making stacked bars that are a different size.
+2. geom_bar(stat = identity) is the same as geom_col()
+3. Because you don't have categories that were not present in the nests of a given species, the position = "dodge" is creating wider bars than when the category is present in both species. 
+4. Note that you've already filtered out the categories that were less than 2% of the (~ lines 204-205), but I think you actually want to filter out those where it's less than 2% of either species nests. This way, you'd have two bars for each category.]{style="color: aquamarine;"}
 
 ```{r fig2}
 #| message: false
@@ -280,6 +294,9 @@ anthrop_prop %>%
     xlab("noca = northern cardinal, nomo = northern mockingbird")
 
 ```
+
+[An important caveat here is that it is relative to total anthropogenic material, not total nest material.]{style="color: aquamarine;"}
+
 ## Proposed analytical approach
 
 **Considering the study design and data, and your research questions, objectives, and/or testable hypotheses, describe your proposed analytical approach. Include your response and predictor variables, type of analysis (linear regression, generalized linear regression, gam, etc.), model selection criteria, etc. Provide sufficient detail to evaluate your proposed approach in the context of your data and questions of interest. If you have questions or uncertain about anything, highlight that here as well. \[2.5 pts\]**
@@ -304,6 +321,17 @@ So first, I will be comparing bacterial community composition between nest mater
 
 predictor variables: sampling method, species 
 response variables: bacterial community composition, shannon's index, richness, differentially abundant taxa.  
+
+[You have a lot going on here, so some first thoughts. Generally speaking, you can't run a LM or GLM with a multivariate response (such as bacterial composition or nest composition) using the functions we covered in class. There are a few ways around this, with various pros and cons:
+
+1. Pick a couple categories of interest, and model those individually. I wouldn't recommend this for all (~17) categories. 
+2. There is a package (mcglm) that may run multivariate regression. I'm not super familiar with it, but it might be an option.
+3. Do you think the amount of a material in the nest is independent of the amount of other material in the nest? If so, you could potentially model the weight of the nest material as a function of species * material category (plus other predictor variables as needed). 
+4. It's unclear to me whether you are planning on analyzing amounts or proportions - this has important implications for your analysis. 
+
+Also, just to confirm: What is your sample size? You have 19 rows in spatial_data but only 18 in the nest_morph_data. 
+
+]{style="color: aquamarine;"}
 
 ## AI statement
 
